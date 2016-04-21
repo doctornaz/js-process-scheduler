@@ -1,0 +1,23 @@
+body {text-align: center }
+table, td, th { border: 1px solid black; }
+#header{
+    background-color:black;
+    color:white;
+    text-align:center;
+    padding:5px;
+}
+#tab1{
+    line-height:30px;
+    background-color:#00ff00;
+    float:left;
+    padding:5px;
+}
+#results{
+    line-height:30px;
+    background-color:#0000ff;
+    float:right;
+    padding:5px;
+}
+.inlineTable {
+    display: inline-block;
+}

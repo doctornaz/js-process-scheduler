@@ -2,50 +2,38 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <style>
-        body {text-align: center }
-        table, td, th { border: 1px solid black; }
-        #header{
-            background-color:black;
-            color:white;
-            text-align:center;
-            padding:5px;
-        }
-        #tab1{
-            line-height:30px;
-            background-color:#00ff00;
-            float:left;
-            padding:5px;
-        }
-        #results{
-            line-height:30px;
-            background-color:#0000ff;
-            float:right;
-            padding:5px;
-        }
-        .inlineTable {
-            display: inline-block;
-        }
-    </style>
-    <title>Comparador de programas</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <title>Program Scheduler</title>
 </head>
-<body>
+<body style="font-family:verdana">
 <div id = header>
-    <h1>Comparador de Programas por FIFO y RR con q = 4</h1>
-    <h2>Hecho por Jorge Sarmiento. 20777291</h2>
-    Nombre del programa <input type= text id= tx1><br>
-    Tiempo Inicial de Ejecucion <input type= number id= tx2><br>
-    Duracion del Programa <input type= number id= tx3><br><br>
-    <input type= button id= b1 value="Agregar programa a la tabla" onclick= "addProgs()"><br>
-    <input type="button" id="b2" value = "Comparar Programas" onclick = "comProgs()">
-    <input type="button" id="b3" value = "Obtener resultados" onclick = "getRes()">
+    <h1>Operating Systems Application Scheduling Methods</h1>
+    <h2>Made by Jorge "Dr. Naz" Sarmiento</h2>
+    <h3>So far it has: FIFO (First In, First Out),
+        SRTF (Shortest Remaining Time First),
+        Round Robin (Variable Quantum)</h3>
+    <h4>Also you can insert up to n Programs/Applications.</h4>
+
+    <label for="tx1">Program Name</label>               <input type= text id= tx1><br>
+    <label for="tx2">Initial Execution Time</label>     <input type= number id= tx2><br>
+    <label for="tx3">Duration</label>                   <input type= number id= tx3><br><br>
+
+    <input type= button  id= b1
+           value= "Agregar programa a la tabla"
+           onclick= "addPrograms()"><br>
+    <input type="button" id= b2
+           value = "Comparar Programas"
+           onclick = "compute()">
+    <input type="button" id= b3
+           value = "Obtener resultados"
+           onclick = "getRes()">
 </div>
 <div id = results>
     <h1>Resultados:</h1>
 </div>
 <div id= tab1>
-    FIFO............. RR q = <input type= number id= qc><br>
-    <table id= tabla class = inlineTable>
+    SRT............. RR q = <input type= number id= qc><br>
+    <table id= fifo class = inlineTable>
         <tr>
             <th>Nombre:</th>
             <th>ti</th>
@@ -56,7 +44,7 @@
             <th>I</th>
         </tr>
     </table>
-    <table id= tabla2 class = inlineTable>
+    <table id= rr class = inlineTable>
         <tr>
             <th>Nombre:</th>
             <th>ti</th>
@@ -67,169 +55,23 @@
             <th>I</th>
         </tr>
     </table>
+
+    <table id= srt class = inlineTable>
+        <tr>
+            <th>Nombre:</th>
+            <th>ti</th>
+            <th>t</th>
+            <th>tf</th>
+            <th>T</th>
+            <th>E</th>
+            <th>I</th>
+        </tr>
+    </table>
+
 </div>
 
-<script>
-    var c = 0, temp = 0, clock1 = 0, clock2 = 0, t1 = 0, e1 = 0, i1 = 0, t2 = 0, e2 = 0, i2 = 0;
-    var ta = [];
-    var tb = [];
-
-    function addProgs() {
-        switch(isNaN(parseInt(document.getElementById("tx2").value)) == false && isNaN(parseInt(document.getElementById("tx3").value)) == false){
-        //Chequea si se ingresaron numeros o caracteres en los textedits.
-            case true:  if(parseInt(document.getElementById("tx2").value) >= temp){
-                        genTables("tabla");
-                        genTables("tabla2");
-                        temp = parseInt(document.getElementById("tx2").value);
-                        }
-                        else{
-                            alert("Introduce un programa con un tiempo inicial de ejecucion menor al anterior.");
-                        }
-                        break;
-
-            case false: alert("Por favor solo ingresar numeros");
-                        break;
-        }
-
-        clearTxt();
-    }
-
-    function comProgs(){
-        clock1 = 0;
-        clock2 = 0;
-        document.getElementById("b3").disabled = false;
-        switch(isNaN(parseInt(document.getElementById("qc").value)) == false){
-            case true:
-                var quantum = parseInt(document.getElementById("qc").value);
-                FIFO("tabla");
-                RR("tabla2",quantum);
-                break;
-
-            case false:
-                alert("Por favor ingresa un quantum Valido.");
-                break;
-        }
-    }
-
-    function FIFO(tableid){
-        var table = document.getElementById(tableid);
-        for (var i = 1, row; row = table.rows[i]; i++) {
-            while((clock1 < table.rows[i].cells[1].innerHTML)){
-                clock1++;
-            }
-            table.rows[i].cells[3].innerHTML = clock1 + parseInt(table.rows[i].cells[2].innerHTML); //tf
-            table.rows[i].cells[4].innerHTML = parseInt(table.rows[i].cells[3].innerHTML) - parseInt(table.rows[i].cells[1].innerHTML); //T
-            table.rows[i].cells[5].innerHTML = parseInt(table.rows[i].cells[4].innerHTML) - parseInt(table.rows[i].cells[2].innerHTML); //E
-            table.rows[i].cells[6].innerHTML = (parseFloat(table.rows[i].cells[2].innerHTML).toFixed(2) / parseFloat(table.rows[i].cells[4].innerHTML)).toFixed(2); //I
-            clock1+= parseInt(table.rows[i].cells[2].innerHTML);
-        }
-    }
-
-    function RR(tableid, q){
-        var table = document.getElementById(tableid);
-        for (var j = 1, row; row = table.rows[j]; j++) {
-            ta[j-1] =  table.rows[j].cells[2].innerHTML;
-        }
-        //Guardo todos los "t" en un arreglo ta para futuros calculos
-        var sum = ta.reduce(function(prev, curr){ return parseInt(prev) + parseInt(curr) }, 0); //Todos los valores del arreglo.
-
-        while(parseInt(sum) > 0){
-            for (var i = 1, r; r = table.rows[i]; i++) {
-                while ((clock2 < table.rows[i].cells[1].innerHTML)) {
-                    clock2++;
-                }
-
-                if(ta[i-1] > 0 && ta[i-1] <= q){
-                    table.rows[i].cells[3].innerHTML = clock2 + parseInt(ta[i-1]); //tf
-                    table.rows[i].cells[4].innerHTML = parseInt(table.rows[i].cells[3].innerHTML) - parseInt(table.rows[i].cells[1].innerHTML); //T
-                    table.rows[i].cells[5].innerHTML = parseInt(table.rows[i].cells[4].innerHTML) - parseInt(table.rows[i].cells[2].innerHTML); //E
-                    table.rows[i].cells[6].innerHTML = (parseFloat(table.rows[i].cells[2].innerHTML).toFixed(2) / parseFloat(table.rows[i].cells[4].innerHTML)).toFixed(2); //I
-                    clock2+= parseInt(ta[i-1]);
-                    sum-= parseInt(ta[i-1]);
-                    ta[i-1] = 0;
-                    //alert("A: " +table.rows[i].cells[0].innerHTML+ "\nSum: " + sum +"\nNuevo Tiempo: " + ta[i-1] + "\nClock: "+ clock2);
-                    //Trabajo normalmente si q >= t
-                }
-                else if(ta[i-1] > 0){
-                    ta[i-1]-= q; //ta = ta - t
-                    sum-= q;
-                    clock2+= q;
-                    //alert("B: " +table.rows[i].cells[0].innerHTML+ "\nSum: " + sum +"\nNuevo Tiempo: " + ta[i-1] + "\nClock: "+ clock2);
-                    //Asigno los nuevos tiempos.
-                }
-            }
-        }
-    }
-
-    function genTables(tableid){
-        var table = document.getElementById(tableid);
-        var row = table.insertRow();
-        var c_name = row.insertCell(0);
-        var c_ti = row.insertCell(1);
-        var c_t = row.insertCell(2);
-        for(var a = 3; a <= 6; a++){
-            row.insertCell(a);
-        }
-        c_name.innerHTML = document.getElementById("tx1").value;
-        c_ti.innerHTML = document.getElementById("tx2").value;
-        c_t.innerHTML = document.getElementById("tx3").value;
-    }
-
-    function clearTxt(){
-        document.getElementById('tx1').value = '';
-        document.getElementById('tx2').value = '';
-        document.getElementById('tx3').value = '';
-    }
-
-    function getRes(){
-        var prom = 0;
-        var table = document.getElementById("tabla");
-        for (var j = 1, row; row = table.rows[j]; j++) {
-            t1+=  parseInt(table.rows[j].cells[4].innerHTML);
-            e1+=  parseInt(table.rows[j].cells[5].innerHTML);
-            i1+=  parseFloat(table.rows[j].cells[6].innerHTML);
-            prom++;
-        }
-        t1 =  parseFloat(t1) / parseFloat(prom);
-        e1 =  parseFloat(e1) / parseFloat(prom);
-        i1 =  parseFloat(i1) / parseFloat(prom);
-        document.getElementById("results").innerHTML += '<br>Para FIFO: ' + '<br>T total: ' + t1.toFixed(2) + "<br>E Total:" + e1.toFixed(2) + "<br>I Total: "+ i1.toFixed(2) ;
-
-        var table = document.getElementById("tabla2");
-        for (var k = 1, r; r = table.rows[k]; k++) {
-            t2+=  parseInt(table.rows[k].cells[4].innerHTML);
-            e2+=  parseInt(table.rows[k].cells[5].innerHTML);
-            i2+=  parseFloat(table.rows[k].cells[6].innerHTML);
-        }
-        t2 =  parseFloat(t2) / parseFloat(prom);
-        e2 =  parseFloat(e2) / parseFloat(prom);
-        i2 =  parseFloat(i2) / parseFloat(prom);
-        document.getElementById("results").innerHTML += '<br>Para RR' + '<br>T total: ' + t2.toFixed(2) + "<br>E Total:" + e2.toFixed(2) + "<br>I Total: "+ i2.toFixed(2) ;
-        document.getElementById("b3").disabled = true;
-
-        if(i1 > i2){
-            document.getElementById("results").innerHTML += '<br>FIFO es Mejor.';
-        }
-        else if(i1 == i2){
-            if(e1 < e2){
-                document.getElementById("results").innerHTML += '<br>FIFO es Mejor.';
-            }
-            else if(e1 == e2){
-                if(t1 > t2){
-                    document.getElementById("results").innerHTML += '<br>FIFO es Mejor.';
-                }
-                else{
-                    document.getElementById("results").innerHTML += '<br>RR es Mejor.';
-                }
-            }
-            else{
-                document.getElementById("results").innerHTML += '<br>RR es Mejor.';
-            }
-        }
-        else{
-            document.getElementById("results").innerHTML += '<br>RR es Mejor.';
-        }
-    }
-</script>
+<script src="js/utils.js"></script>
+<script src="js/scripts.js"></script>
+<script src="js/enums.js"></script>
 </body>
 </html>
